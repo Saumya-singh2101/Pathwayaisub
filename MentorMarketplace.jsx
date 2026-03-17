@@ -1,519 +1,394 @@
 /**
- * Mentors.jsx — Find & Book a Peer Mentor
- * src/pages/student/Mentors.jsx
- *
- * Flow:
- *  1. Subject + need selector
- *  2. Matched mentor list (with credentials, ratings, price)
- *  3. Book session modal → confirmation
+ * MentorMarketplace.jsx — PathwayAI Peer Mentors
+ * Dark #0c0c0f · Syne · Instrument Serif · JetBrains Mono · #7ecba1 accent
+ * No emojis · No Tailwind
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 
-/* ── Mentor data ── */
+const GREEN = "#7ecba1";
+const GREEN2 = "#a8e6c4";
+
 const MENTORS = [
-  {
-    id: 1,
-    name: "Arjun Sharma",
-    avatar: "AS",
-    avatarColor: "linear-gradient(135deg,#1D4ED8,#3B82F6)",
-    class: "Class 12 · CBSE",
-    location: "Pune, Maharashtra",
-    subjects: ["Mathematics", "Physics", "Coding"],
-    speciality: "Quadratic Equations, Calculus, Python",
-    rating: 4.9,
-    reviews: 38,
-    sessions: 62,
-    rate: 80,
-    badges: ["🥇 Mathematics Gold", "🥉 Coding Bronze"],
-    badgeColors: ["#F59E0B", "#CD7F32"],
-    languages: ["English", "Hindi", "Marathi"],
-    about: "I scored 98 in Math in boards and love breaking down hard concepts into simple steps. I use visual methods and real examples.",
-    available: ["Mon 4–6 PM", "Wed 5–7 PM", "Sat 10 AM–1 PM"],
-    streak: 24,
-    topSkills: ["Algebra", "Trigonometry", "Python Basics", "Newton's Laws"],
-    verified: true,
-    responseTime: "~15 min",
-  },
-  {
-    id: 2,
-    name: "Priya Nair",
-    avatar: "PN",
-    avatarColor: "linear-gradient(135deg,#7C3AED,#A78BFA)",
-    class: "Class 11 · State Board",
-    location: "Nagpur, Maharashtra",
-    subjects: ["Science", "Biology", "Chemistry"],
-    speciality: "Cell Biology, Organic Chemistry, Ecology",
-    rating: 4.8,
-    reviews: 27,
-    sessions: 44,
-    rate: 60,
-    badges: ["🥈 Science Silver", "🥉 Biology Bronze"],
-    badgeColors: ["#94A3B8", "#CD7F32"],
-    languages: ["English", "Hindi", "Telugu"],
-    about: "Biology and Chemistry are my passion! I use diagrams, mnemonics and practice MCQs to make concepts stick.",
-    available: ["Tue 5–7 PM", "Thu 4–6 PM", "Sun 2–5 PM"],
-    streak: 18,
-    topSkills: ["Cell Biology", "Organic Reactions", "Ecology", "Human Body"],
-    verified: true,
-    responseTime: "~10 min",
-  },
-  {
-    id: 3,
-    name: "Rohan Desai",
-    avatar: "RD",
-    avatarColor: "linear-gradient(135deg,#059669,#34D399)",
-    class: "Class 12 · ICSE",
-    location: "Mumbai, Maharashtra",
-    subjects: ["History", "Geography", "Language"],
-    speciality: "Indian Freedom Movement, Map Work, Essay Writing",
-    rating: 4.7,
-    reviews: 19,
-    sessions: 31,
-    rate: 50,
-    badges: ["🥇 History Gold"],
-    badgeColors: ["#F59E0B"],
-    languages: ["English", "Marathi", "Hindi"],
-    about: "History isn't dates — it's stories. I connect events to today's world to make everything memorable and exam-relevant.",
-    available: ["Mon 6–8 PM", "Fri 5–7 PM", "Sat 2–5 PM"],
-    streak: 12,
-    topSkills: ["Freedom Movement", "World Wars", "Essay Writing", "Map Skills"],
-    verified: true,
-    responseTime: "~20 min",
-  },
-  {
-    id: 4,
-    name: "Sneha Kulkarni",
-    avatar: "SK",
-    avatarColor: "linear-gradient(135deg,#DB2777,#F472B6)",
-    class: "Class 10 · CBSE",
-    location: "Nashik, Maharashtra",
-    subjects: ["Mathematics", "Science"],
-    speciality: "Class 9–10 Math, Basic Science, Exam prep",
-    rating: 4.9,
-    reviews: 51,
-    sessions: 89,
-    rate: 70,
-    badges: ["🥈 Mathematics Silver", "🥉 Science Bronze"],
-    badgeColors: ["#94A3B8", "#CD7F32"],
-    languages: ["Hindi", "Marathi", "English"],
-    about: "I cleared Class 10 boards with 95% and have been helping juniors ever since. I focus heavily on CBSE exam patterns.",
-    available: ["Daily 4–6 PM", "Sun All Day"],
-    streak: 42,
-    topSkills: ["Algebra", "Mensuration", "Light & Sound", "Chemical Reactions"],
-    verified: true,
-    responseTime: "~5 min",
-  },
-  {
-    id: 5,
-    name: "Vikram Iyer",
-    avatar: "VI",
-    avatarColor: "linear-gradient(135deg,#D97706,#FCD34D)",
-    class: "Class 12 · CBSE",
-    location: "Chennai (Remote)",
-    subjects: ["Coding", "Mathematics"],
-    speciality: "DSA, Competitive Programming, Calculus",
-    rating: 4.6,
-    reviews: 14,
-    sessions: 22,
-    rate: 90,
-    badges: ["🥇 Coding Gold", "🥉 Mathematics Bronze"],
-    badgeColors: ["#F59E0B", "#CD7F32"],
-    languages: ["English", "Tamil"],
-    about: "Competitive programmer who loves teaching. I help students crack coding Olympiads and understand math proofs.",
-    available: ["Wed 7–9 PM", "Sat 6–9 PM", "Sun 6–9 PM"],
-    streak: 9,
-    topSkills: ["Arrays & Sorting", "Data Structures", "Calculus", "Number Theory"],
-    verified: false,
-    responseTime: "~30 min",
-  },
-  {
-    id: 6,
-    name: "Anjali Mehta",
-    avatar: "AM",
-    avatarColor: "linear-gradient(135deg,#0891B2,#38BDF8)",
-    class: "Class 11 · State Board",
-    location: "Aurangabad, Maharashtra",
-    subjects: ["Language", "History", "General GK"],
-    speciality: "Grammar, Literature, Current Affairs",
-    rating: 4.8,
-    reviews: 22,
-    sessions: 37,
-    rate: 45,
-    badges: ["🥈 Language Silver"],
-    badgeColors: ["#94A3B8"],
-    languages: ["English", "Hindi", "Urdu"],
-    about: "English and Hindi literature are my strengths. I help with grammar, comprehension, essay writing, and GK for competitive exams.",
-    available: ["Mon–Fri 6–8 PM", "Sun 10 AM–12 PM"],
-    streak: 16,
-    topSkills: ["Grammar", "Essay Writing", "Comprehension", "Current Affairs"],
-    verified: true,
-    responseTime: "~10 min",
-  },
+  { id:1, name:"Arjun Sharma",   avatar:"AS", color:"linear-gradient(135deg,#1D4ED8,#3B82F6)", class:"Class 12 · CBSE",  location:"Pune, MH",       subjects:["Mathematics","Physics","Coding"],     speciality:"Quadratic Equations, Calculus, Python", rating:4.9, reviews:38, sessions:62, rate:80,  badges:["Math Gold","Coding Bronze"], badgeAccents:["#cba87e","#b8864a"], languages:["English","Hindi","Marathi"], about:"I scored 98 in Math in boards and love breaking down hard concepts into simple steps.", available:["Mon 4–6 PM","Wed 5–7 PM","Sat 10 AM–1 PM"], streak:24, responseTime:"~15 min", verified:true },
+  { id:2, name:"Priya Nair",     avatar:"PN", color:"linear-gradient(135deg,#7C3AED,#A78BFA)", class:"Class 11 · State", location:"Nagpur, MH",      subjects:["Science","Biology","Chemistry"],      speciality:"Cell Biology, Organic Chemistry, Ecology", rating:4.8, reviews:27, sessions:44, rate:60,  badges:["Science Silver","Biology Bronze"], badgeAccents:["#94a3b8","#b8864a"], languages:["English","Hindi","Telugu"],  about:"Biology and Chemistry are my passion — I use diagrams and mnemonics to make concepts stick.", available:["Tue 5–7 PM","Thu 4–6 PM","Sun 2–5 PM"], streak:18, responseTime:"~10 min", verified:true },
+  { id:3, name:"Rohan Desai",    avatar:"RD", color:"linear-gradient(135deg,#059669,#34D399)", class:"Class 12 · ICSE",  location:"Mumbai, MH",      subjects:["History","Geography","Language"],     speciality:"Freedom Movement, Map Work, Essay Writing", rating:4.7, reviews:19, sessions:31, rate:50,  badges:["History Gold"], badgeAccents:["#cba87e"], languages:["English","Marathi","Hindi"], about:"History isn't dates — it's stories. I connect events to today's world.", available:["Mon 6–8 PM","Fri 5–7 PM","Sat 2–5 PM"], streak:12, responseTime:"~20 min", verified:true },
+  { id:4, name:"Sneha Kulkarni", avatar:"SK", color:"linear-gradient(135deg,#DB2777,#F472B6)", class:"Class 10 · CBSE",  location:"Nashik, MH",      subjects:["Mathematics","Science"],              speciality:"Class 9–10 Math, Basic Science, Exam prep", rating:4.9, reviews:51, sessions:89, rate:70,  badges:["Math Silver","Science Bronze"], badgeAccents:["#94a3b8","#b8864a"], languages:["Hindi","Marathi","English"], about:"Cleared Class 10 boards with 95%. I focus heavily on CBSE exam patterns.", available:["Daily 4–6 PM","Sun All Day"], streak:42, responseTime:"~5 min", verified:true },
+  { id:5, name:"Vikram Iyer",    avatar:"VI", color:"linear-gradient(135deg,#D97706,#FCD34D)", class:"Class 12 · CBSE",  location:"Chennai (Remote)", subjects:["Coding","Mathematics"],               speciality:"DSA, Competitive Programming, Calculus", rating:4.6, reviews:14, sessions:22, rate:90,  badges:["Coding Gold","Math Bronze"], badgeAccents:["#cba87e","#b8864a"], languages:["English","Tamil"],           about:"Competitive programmer who loves teaching. I help crack Olympiads.", available:["Wed 7–9 PM","Sat 6–9 PM","Sun 6–9 PM"], streak:9, responseTime:"~30 min", verified:false },
+  { id:6, name:"Anjali Mehta",   avatar:"AM", color:"linear-gradient(135deg,#0891B2,#38BDF8)", class:"Class 11 · State", location:"Aurangabad, MH",  subjects:["Language","History","General GK"],    speciality:"Grammar, Literature, Current Affairs", rating:4.8, reviews:22, sessions:37, rate:45,  badges:["Language Silver"], badgeAccents:["#94a3b8"], languages:["English","Hindi","Urdu"], about:"English and Hindi literature are my strengths. Grammar, essay writing, GK.", available:["Mon–Fri 6–8 PM","Sun 10 AM–12 PM"], streak:16, responseTime:"~10 min", verified:true },
 ];
 
-const SUBJECTS = ["Mathematics", "Science", "History", "Language", "Coding", "General GK"];
-
+const SUBJECTS = ["Mathematics","Science","History","Language","Coding","General GK"];
 const NEEDS = [
-  { id: "concept",  label: "Understand a concept",   icon: "💡" },
-  { id: "homework", label: "Help with homework",      icon: "📝" },
-  { id: "exam",     label: "Exam preparation",        icon: "🎯" },
-  { id: "doubt",    label: "Clear a specific doubt",  icon: "❓" },
-  { id: "practice", label: "Practice & mock tests",   icon: "🔁" },
+  { id:"concept",  label:"Understand a concept"  },
+  { id:"homework", label:"Help with homework"     },
+  { id:"exam",     label:"Exam preparation"       },
+  { id:"doubt",    label:"Clear a specific doubt" },
+  { id:"practice", label:"Practice & mock tests"  },
 ];
-
 const BUDGETS = [
-  { id: "any",    label: "Any",       max: 999 },
-  { id: "low",    label: "Under ₹60", max: 60  },
-  { id: "mid",    label: "₹60–₹80",  max: 80  },
-  { id: "high",   label: "₹80+",     max: 999 },
+  { id:"any",  label:"Any",       max:999 },
+  { id:"low",  label:"Under 60",  max:60  },
+  { id:"mid",  label:"60–80",     max:80  },
+  { id:"high", label:"80+",       max:999 },
 ];
+const ALL_LANGS = [...new Set(MENTORS.flatMap(m => m.languages))].sort();
 
-/* ─────────────────────────────
-   CSS
-───────────────────────────── */
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0c0c0f;color:#e8e6df;font-family:'Syne',sans-serif}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(126,203,161,.2);border-radius:10px}
 
-  .men-app { min-height: 100vh; font-family: 'DM Sans', sans-serif; transition: background 0.3s, color 0.3s; }
-  .men-app.dark  { background: #070E1C; color: #E2EEFF; }
-  .men-app.light { background: #EBF4FF; color: #0F172A; }
+@keyframes fade-up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scale-in{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes slide-up{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blob-drift{0%,100%{transform:translate(0,0)scale(1)}33%{transform:translate(28px,-18px)scale(1.04)}66%{transform:translate(-18px,22px)scale(.97)}}
 
-  /* Mesh bg */
-  .mesh-fixed { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-  @keyframes orb-float { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(18px,-14px)scale(1.04)} }
-  .orb { position: absolute; border-radius: 50%; animation: orb-float 14s ease-in-out infinite; }
+.fu{animation:fade-up .55s cubic-bezier(.16,1,.3,1) both}
+.si{animation:scale-in .45s cubic-bezier(.16,1,.3,1) both}
+.d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}
+.d4{animation-delay:.24s}.d5{animation-delay:.3s}.d6{animation-delay:.36s}
 
-  /* Animations */
-  @keyframes fade-up   { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes scale-in  { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
-  @keyframes shimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
-  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
-  @keyframes slide-up  { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes confetti  { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(-80px) rotate(360deg);opacity:0} }
+/* ── Root ── */
+.mn-root{min-height:100vh;background:#0c0c0f;position:relative;overflow-x:hidden}
+.mn-blob{position:fixed;border-radius:50%;filter:blur(130px);pointer-events:none;z-index:0}
 
-  .animate-fade-up  { animation: fade-up  0.55s cubic-bezier(0.16,1,0.3,1) both; }
-  .animate-scale-in { animation: scale-in 0.45s cubic-bezier(0.16,1,0.3,1) both; }
-  .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+/* ── Topbar ── */
+.mn-topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(12,12,15,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:14px 28px;display:flex;align-items:center;gap:12px;
+}
+.mn-topbar-title{font-size:16px;font-weight:800;letter-spacing:-.01em;color:#f0ede6;flex:1}
 
-  .d1{animation-delay:0.04s} .d2{animation-delay:0.08s} .d3{animation-delay:0.12s}
-  .d4{animation-delay:0.16s} .d5{animation-delay:0.2s}  .d6{animation-delay:0.24s}
+/* ── Btns ── */
+.mn-btn-ghost{
+  padding:9px 18px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:rgba(232,230,223,.55);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.mn-btn-ghost:hover{border-color:rgba(255,255,255,.2);color:#e8e6df}
+.mn-btn-primary{
+  padding:12px 24px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,${GREEN},${GREEN2},${GREEN});background-size:200%;
+  color:#0c2018;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .3s;
+}
+.mn-btn-primary:hover{background-position:right;transform:translateY(-1px)}
 
-  .text-gradient {
-    background: linear-gradient(135deg,#38BDF8,#818CF8,#34D399);
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  }
-  .text-shimmer {
-    background: linear-gradient(90deg,#38BDF8,#818CF8,#38BDF8);
-    background-size:200% auto;
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    animation: shimmer 3s linear infinite;
-  }
+/* ── Card ── */
+.mn-card{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;
+  position:relative;overflow:hidden;
+  transition:border-color .25s,transform .25s;
+}
+.mn-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:linear-gradient(135deg,rgba(126,203,161,.03),transparent 60%);pointer-events:none}
+.mn-card:hover{border-color:rgba(126,203,161,.14);transform:translateY(-3px)}
 
-  /* Cards */
-  .glass-card { border-radius: 22px; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
-  .dark  .glass-card { background:rgba(13,27,46,0.85); border:1px solid rgba(59,130,246,0.15); backdrop-filter:blur(20px); }
-  .light .glass-card { background:rgba(255,255,255,0.88); border:1px solid rgba(147,197,253,0.4); backdrop-filter:blur(20px); box-shadow:0 4px 24px rgba(37,99,235,0.07); }
+/* ── Filter chips ── */
+.mn-chip{
+  padding:7px 16px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:rgba(232,230,223,.4);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.mn-chip:hover{border-color:rgba(255,255,255,.18);color:rgba(232,230,223,.75)}
+.mn-chip.active{background:rgba(126,203,161,.1);border-color:rgba(126,203,161,.3);color:${GREEN}}
 
-  /* Mentor card */
-  .mentor-card { border-radius: 22px; padding: 24px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden; }
-  .dark  .mentor-card { background:rgba(13,27,46,0.9); border:1px solid rgba(59,130,246,0.12); }
-  .light .mentor-card { background:rgba(255,255,255,0.92); border:1px solid rgba(147,197,253,0.35); box-shadow:0 4px 20px rgba(37,99,235,0.06); }
-  .mentor-card:hover { transform:translateY(-5px); }
-  .dark  .mentor-card:hover { border-color:rgba(56,189,248,0.4); box-shadow:0 12px 40px rgba(56,189,248,0.1); }
-  .light .mentor-card:hover { border-color:rgba(56,189,248,0.5); box-shadow:0 12px 40px rgba(56,189,248,0.12); }
+.mn-need-chip{
+  padding:10px 14px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.025);
+  color:rgba(232,230,223,.4);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .2s;text-align:left;
+}
+.mn-need-chip:hover{border-color:rgba(255,255,255,.15);color:rgba(232,230,223,.75)}
+.mn-need-chip.active{background:rgba(126,203,161,.08);border-color:rgba(126,203,161,.25);color:${GREEN}}
 
-  /* Stars */
-  .stars { color:#F59E0B; letter-spacing:-1px; font-size:13px; }
+/* ── Mentor card ── */
+.mn-mentor-card{
+  padding:24px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.025);
+  position:relative;overflow:hidden;
+  transition:all .28s cubic-bezier(.16,1,.3,1);
+}
+.mn-mentor-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:linear-gradient(135deg,rgba(126,203,161,.03),transparent 60%);pointer-events:none}
+.mn-mentor-card:hover{border-color:rgba(126,203,161,.2);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.4)}
 
-  /* Pills */
-  .pill { padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; }
-  .dark  .pill { background:rgba(56,189,248,0.12); color:#7DD3FC; border:1px solid rgba(56,189,248,0.2); }
-  .light .pill { background:rgba(219,234,254,0.8); color:#1D4ED8; border:1px solid rgba(147,197,253,0.4); }
+/* ── Avatar ── */
+.mn-avatar{
+  width:52px;height:52px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:white;flex-shrink:0;
+}
 
-  .badge-pill { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+/* ── Stars ── */
+.mn-stars{color:#cba87e;letter-spacing:-1px;font-size:13px}
 
-  /* Filter chip */
-  .filter-chip { padding:8px 18px; border-radius:20px; font-size:13px; font-weight:700; cursor:pointer; border:2px solid transparent; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+/* ── Label ── */
+.mn-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:rgba(126,203,161,.6);margin-bottom:12px}
 
-  /* Need chip */
-  .need-chip { padding:10px 16px; border-radius:14px; font-size:13px; font-weight:600; cursor:pointer; border:2px solid transparent; transition:all 0.2s; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:8px; }
+/* ── Verified ── */
+.mn-verified{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:5px;font-size:9px;font-weight:800;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(126,203,161,.1);border:1px solid rgba(126,203,161,.2);color:${GREEN};
+}
 
-  /* Avatar */
-  .avatar { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:16px; font-weight:800; color:white; flex-shrink:0; }
-  .avatar-lg { width:72px; height:72px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:white; flex-shrink:0; }
+/* ── Subject pill ── */
+.mn-pill{
+  padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  color:rgba(232,230,223,.45);
+}
 
-  /* Modal */
-  .modal-overlay { position:fixed; inset:0; z-index:100; display:flex; align-items:flex-end; justify-content:center; }
-  @media(min-width:640px) { .modal-overlay { align-items:center; } }
-  .modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); }
-  .modal-sheet { position:relative; z-index:1; width:100%; max-width:560px; border-radius:28px 28px 0 0; overflow:hidden; animation:slide-up 0.4s cubic-bezier(0.16,1,0.3,1) both; max-height:92vh; overflow-y:auto; }
-  @media(min-width:640px) { .modal-sheet { border-radius:28px; animation:scale-in 0.35s cubic-bezier(0.16,1,0.3,1) both; } }
-  .dark  .modal-sheet { background:#0D1B2E; border:1px solid rgba(59,130,246,0.2); }
-  .light .modal-sheet { background:#fff; border:1px solid rgba(147,197,253,0.4); box-shadow:0 24px 64px rgba(37,99,235,0.15); }
+/* ── Modal ── */
+.mn-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center}
+.mn-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px)}
+.mn-modal{
+  position:relative;z-index:1;width:100%;max-width:520px;
+  border-radius:24px;overflow:hidden;
+  animation:scale-in .35s cubic-bezier(.16,1,.3,1) both;
+  max-height:92vh;overflow-y:auto;
+  background:#111115;
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+}
+.mn-modal::-webkit-scrollbar{width:4px}
+.mn-modal::-webkit-scrollbar-thumb{background:rgba(126,203,161,.2);border-radius:10px}
 
-  /* Btn */
-  .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 28px; border-radius:14px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; color:white; background:linear-gradient(135deg,#0EA5E9,#3B82F6); box-shadow:0 4px 16px rgba(14,165,233,0.35); transition:all 0.2s; }
-  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(14,165,233,0.45); }
-  .btn-ghost { display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border-radius:12px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; background:transparent; transition:all 0.2s; }
-  .dark  .btn-ghost { border:1px solid rgba(59,130,246,0.25); color:#94A3B8; }
-  .light .btn-ghost { border:1px solid rgba(147,197,253,0.5); color:#64748B; }
-  .btn-ghost:hover { border-color:#38BDF8; color:#38BDF8; }
+/* ── Modal input ── */
+.mn-input{
+  width:100%;padding:11px 14px;border-radius:11px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);
+  color:#e8e6df;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
+  outline:none;transition:border-color .2s;
+}
+.mn-input:focus{border-color:rgba(126,203,161,.3)}
+.mn-input::placeholder{color:rgba(232,230,223,.2)}
 
-  /* Verified badge */
-  .verified-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#4ADE80; }
+/* ── Slot btn ── */
+.mn-slot{
+  padding:9px 14px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:rgba(232,230,223,.45);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+  cursor:pointer;transition:all .2s;text-align:left;
+}
+.mn-slot:hover{border-color:rgba(255,255,255,.18);color:rgba(232,230,223,.75)}
+.mn-slot.active{background:rgba(126,203,161,.1);border-color:rgba(126,203,161,.3);color:${GREEN}}
 
-  /* Online dot */
-  .online-dot { width:9px; height:9px; border-radius:50%; background:#22C55E; animation:pulse-dot 2s ease-in-out infinite; flex-shrink:0; }
+/* ── Confirm ── */
+.mn-confirm-ring{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(126,203,161,.1);border:2px solid rgba(126,203,161,.3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+}
 
-  /* Progress bar */
-  .prog { height:5px; border-radius:3px; overflow:hidden; }
-  .dark  .prog { background:rgba(255,255,255,0.07); }
-  .light .prog { background:rgba(0,0,0,0.07); }
-  .prog-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#38BDF8,#818CF8); }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width:5px; }
-  ::-webkit-scrollbar-thumb { background:rgba(56,189,248,0.3); border-radius:3px; }
-
-  /* Confirmation celebration */
-  .confetti-piece { position:absolute; width:8px; height:8px; border-radius:2px; animation:confetti 1s ease-out both; }
+/* content container */
+.mn-content{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 28px}
 `;
 
-/* ─────────────────────────────
-   STAR RATING
-───────────────────────────── */
 function Stars({ rating }) {
-  const full  = Math.floor(rating);
-  const half  = rating % 1 >= 0.5;
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
   return (
-    <span className="stars">
-      {"★".repeat(full)}{half ? "½" : ""}{"☆".repeat(5 - full - (half ? 1 : 0))}
+    <span className="mn-stars">
+      {"★".repeat(full)}{half ? "½" : ""}{"☆".repeat(5 - full - (half?1:0))}
     </span>
   );
 }
 
-/* ─────────────────────────────
-   MENTOR CARD
-───────────────────────────── */
-function MentorCard({ mentor, onBook, dark, index }) {
-  const t = dark ? "#E2EEFF" : "#0F172A";
-  const m = dark ? "#64748B" : "#94A3B8";
-
+function MentorCard({ mentor, onBook, index }) {
   return (
-    <div className={`mentor-card animate-fade-up d${(index % 6) + 1}`} onClick={() => onBook(mentor)}>
-      {/* Top row */}
-      <div style={{ display:"flex", gap:14, alignItems:"flex-start", marginBottom:16 }}>
-        <div className="avatar" style={{ background:mentor.avatarColor }}>
-          {mentor.avatar}
-        </div>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:3 }}>
-            <span style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:t }}>{mentor.name}</span>
-            {mentor.verified && <span className="verified-badge">✓ Verified</span>}
+    <div className={`mn-mentor-card fu d${(index%6)+1}`}>
+      {/* Top */}
+      <div style={{ display:"flex",gap:14,alignItems:"flex-start",marginBottom:16 }}>
+        <div className="mn-avatar" style={{ background:mentor.color }}>{mentor.avatar}</div>
+        <div style={{ flex:1,minWidth:0 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:3 }}>
+            <span style={{ fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:"#f0ede6" }}>{mentor.name}</span>
+            {mentor.verified && <span className="mn-verified">Verified</span>}
           </div>
-          <div style={{ fontSize:12, color:m, marginBottom:6 }}>{mentor.class} · {mentor.location}</div>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <Stars rating={mentor.rating} />
-            <span style={{ fontSize:12, fontWeight:700, color:t }}>{mentor.rating}</span>
-            <span style={{ fontSize:12, color:m }}>({mentor.reviews} reviews)</span>
-            <span className="online-dot" title="Online" />
+          <div style={{ fontSize:11,color:"rgba(232,230,223,.3)",fontFamily:"'JetBrains Mono',monospace",marginBottom:6 }}>{mentor.class} · {mentor.location}</div>
+          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+            <Stars rating={mentor.rating}/>
+            <span style={{ fontSize:12,fontWeight:700,color:"#f0ede6" }}>{mentor.rating}</span>
+            <span style={{ fontSize:11,color:"rgba(232,230,223,.3)" }}>({mentor.reviews})</span>
+            <div style={{ width:6,height:6,borderRadius:"50%",background:GREEN,boxShadow:`0 0 6px ${GREEN}` }}/>
           </div>
         </div>
-        <div style={{ textAlign:"right", flexShrink:0 }}>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:900, color:"#38BDF8" }}>₹{mentor.rate}</div>
-          <div style={{ fontSize:11, color:m, fontWeight:600 }}>per session</div>
+        <div style={{ textAlign:"right",flexShrink:0 }}>
+          <div style={{ fontFamily:"'Instrument Serif',serif",fontStyle:"italic",fontSize:28,fontWeight:500,color:GREEN }}>Rs{mentor.rate}</div>
+          <div style={{ fontSize:10,color:"rgba(232,230,223,.3)",fontFamily:"'JetBrains Mono',monospace" }}>per session</div>
         </div>
       </div>
 
       {/* Subjects */}
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
-        {mentor.subjects.map(s => (
-          <span key={s} className="pill">{s}</span>
-        ))}
+      <div style={{ display:"flex",flexWrap:"wrap",gap:6,marginBottom:12 }}>
+        {mentor.subjects.map(s => <span key={s} className="mn-pill">{s}</span>)}
       </div>
 
       {/* Speciality */}
-      <p style={{ fontSize:13, color:m, marginBottom:14, lineHeight:1.55 }}>
-        <span style={{ color:t, fontWeight:600 }}>Specialises in: </span>{mentor.speciality}
+      <p style={{ fontSize:12,color:"rgba(232,230,223,.4)",marginBottom:14,lineHeight:1.6,fontWeight:500 }}>
+        <span style={{ color:"rgba(232,230,223,.65)",fontWeight:700 }}>Specialises in: </span>{mentor.speciality}
       </p>
 
-      {/* Badges earned */}
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14 }}>
-        {mentor.badges.map((b, i) => (
-          <span key={b} className="badge-pill" style={{ background:`${mentor.badgeColors[i]}18`, border:`1px solid ${mentor.badgeColors[i]}40`, color:mentor.badgeColors[i] }}>{b}</span>
+      {/* Badges */}
+      <div style={{ display:"flex",flexWrap:"wrap",gap:6,marginBottom:14 }}>
+        {mentor.badges.map((b,i) => (
+          <span key={b} style={{
+            padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,
+            background:`${mentor.badgeAccents[i]}18`,border:`1px solid ${mentor.badgeAccents[i]}40`,
+            color:mentor.badgeAccents[i],fontFamily:"'JetBrains Mono',monospace",letterSpacing:".06em",
+          }}>{b}</span>
         ))}
       </div>
 
-      {/* Stats row */}
-      <div style={{ display:"flex", gap:16, paddingTop:14, borderTop:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)"}`, marginBottom:14 }}>
+      {/* Stats */}
+      <div style={{ display:"flex",gap:16,paddingTop:14,borderTop:"1px solid rgba(255,255,255,.06)",marginBottom:16 }}>
         {[
-          { label:"Sessions", val:mentor.sessions },
-          { label:"Streak",   val:`${mentor.streak}🔥` },
-          { label:"Reply",    val:mentor.responseTime },
+          { label:"Sessions",  val:mentor.sessions },
+          { label:"Streak",    val:`${mentor.streak} days` },
+          { label:"Response",  val:mentor.responseTime },
         ].map(s => (
           <div key={s.label}>
-            <div style={{ fontSize:14, fontWeight:800, color:t }}>{s.val}</div>
-            <div style={{ fontSize:11, color:m, fontWeight:600 }}>{s.label}</div>
+            <div style={{ fontFamily:"'Instrument Serif',serif",fontStyle:"italic",fontSize:20,fontWeight:500,color:"#f0ede6" }}>{s.val}</div>
+            <div style={{ fontSize:10,color:"rgba(232,230,223,.3)",fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:".06em" }}>{s.label}</div>
           </div>
         ))}
         <div style={{ marginLeft:"auto" }}>
-          <div style={{ fontSize:12, color:m, fontWeight:600, marginBottom:4 }}>Languages</div>
-          <div style={{ fontSize:12, color:t, fontWeight:600 }}>{mentor.languages.join(", ")}</div>
+          <div style={{ fontSize:10,color:"rgba(232,230,223,.3)",fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:".06em",marginBottom:3 }}>Languages</div>
+          <div style={{ fontSize:12,color:"rgba(232,230,223,.55)",fontWeight:600 }}>{mentor.languages.join(", ")}</div>
         </div>
       </div>
 
-      {/* Book button */}
-      <button className="btn-primary" style={{ width:"100%", fontSize:13 }} onClick={e => { e.stopPropagation(); onBook(mentor); }}>
-        📅 Book a Session — ₹{mentor.rate}
+      <button className="mn-btn-primary" style={{ width:"100%" }} onClick={() => onBook(mentor)}>
+        Book a Session — Rs{mentor.rate}
       </button>
     </div>
   );
 }
 
-/* ─────────────────────────────
-   BOOK MODAL
-───────────────────────────── */
-function BookModal({ mentor, subject, need, onClose, onConfirm, dark }) {
-  const [slot,    setSlot]    = useState(null);
-  const [note,    setNote]    = useState("");
-  const [step,    setStep]    = useState(1); // 1=details, 2=confirm, 3=booked
-  const [paying,  setPaying]  = useState(false);
-
-  const t = dark ? "#E2EEFF"  : "#0F172A";
-  const m = dark ? "#64748B"  : "#94A3B8";
-  const inputStyle = { width:"100%", padding:"11px 14px", borderRadius:12, border:`1.5px solid ${dark?"rgba(59,130,246,0.2)":"rgba(147,197,253,0.4)"}`, background:dark?"rgba(15,30,55,0.8)":"rgba(248,250,252,0.9)", color:t, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" };
+function BookModal({ mentor, subject, need, onClose, onConfirm }) {
+  const [slot,   setSlot]   = useState(null);
+  const [note,   setNote]   = useState("");
+  const [step,   setStep]   = useState(1);
+  const [paying, setPaying] = useState(false);
 
   const handlePay = async () => {
     setPaying(true);
-    await new Promise(r => setTimeout(r, 1600)); // simulate payment
+    await new Promise(r => setTimeout(r,1600));
     setPaying(false);
     setStep(3);
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-backdrop" onClick={step < 3 ? onClose : undefined} />
-      <div className="modal-sheet">
+    <div className="mn-overlay">
+      <div className="mn-backdrop" onClick={step<3?onClose:undefined}/>
+      <div className="mn-modal">
 
-        {/* Step 1 — Details */}
-        {step === 1 && (
-          <div style={{ padding:28 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:24 }}>
-              <div className="avatar-lg" style={{ background:mentor.avatarColor }}>{mentor.avatar}</div>
-              <div>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:19, fontWeight:800, color:t }}>{mentor.name}</div>
-                <div style={{ fontSize:13, color:m }}>{mentor.class} · {mentor.location}</div>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:4 }}>
-                  <Stars rating={mentor.rating} />
-                  <span style={{ fontSize:12, fontWeight:700, color:t }}>{mentor.rating} ({mentor.reviews})</span>
+        {/* Header */}
+        <div style={{ padding:"22px 24px 18px",borderBottom:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",gap:14 }}>
+          <div className="mn-avatar" style={{ width:44,height:44,borderRadius:13,background:mentor.color,fontSize:14 }}>{mentor.avatar}</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:"#f0ede6" }}>{mentor.name}</div>
+            <div style={{ fontSize:10,color:"rgba(232,230,223,.3)",fontFamily:"'JetBrains Mono',monospace" }}>{mentor.class}</div>
+          </div>
+          {step < 3 && (
+            <button onClick={onClose} style={{ background:"none",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,padding:"5px 8px",color:"rgba(232,230,223,.35)",cursor:"pointer",fontSize:13 }}>✕</button>
+          )}
+        </div>
+
+        {step < 3 ? (
+          <div style={{ padding:24 }}>
+            {/* Progress */}
+            <div style={{ display:"flex",gap:6,marginBottom:22 }}>
+              {[1,2].map(i => (
+                <div key={i} style={{ flex:1,height:3,borderRadius:999,background:i<=step?"rgba(126,203,161,.6)":"rgba(255,255,255,.07)",transition:"background .3s" }}/>
+              ))}
+            </div>
+
+            {step === 1 && (
+              <>
+                <div className="mn-label">Select Time Slot</div>
+                <div style={{ display:"flex",flexDirection:"column",gap:6,marginBottom:20 }}>
+                  {mentor.available.map(s => (
+                    <button key={s} className={`mn-slot ${slot===s?"active":""}`} onClick={() => setSlot(s)}>{s}</button>
+                  ))}
                 </div>
-              </div>
-            </div>
+                <div className="mn-label" style={{ marginTop:4 }}>Note for Mentor (optional)</div>
+                <textarea
+                  className="mn-input"
+                  rows={3}
+                  placeholder="What do you want help with?"
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  style={{ resize:"none" }}
+                />
+                <button
+                  className="mn-btn-primary" style={{ width:"100%",marginTop:16 }}
+                  disabled={!slot}
+                  onClick={() => setStep(2)}
+                >
+                  Continue →
+                </button>
+              </>
+            )}
 
-            {/* About */}
-            <div style={{ padding:"14px 16px", borderRadius:14, background:dark?"rgba(15,30,55,0.7)":"rgba(241,245,249,0.8)", border:`1px solid ${dark?"rgba(59,130,246,0.1)":"rgba(147,197,253,0.3)"}`, marginBottom:20 }}>
-              <p style={{ fontSize:13, color:m, lineHeight:1.6 }}>"{mentor.about}"</p>
-            </div>
-
-            {/* Top skills */}
-            <div style={{ marginBottom:20 }}>
-              <p style={{ fontSize:11, fontWeight:700, color:m, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Top Skills</p>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                {mentor.topSkills.map(s => <span key={s} className="pill">{s}</span>)}
-              </div>
-            </div>
-
-            {/* Pick slot */}
-            <div style={{ marginBottom:20 }}>
-              <p style={{ fontSize:11, fontWeight:700, color:m, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Available Slots</p>
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                {mentor.available.map(s => (
-                  <button key={s} onClick={() => setSlot(s)}
-                    style={{ padding:"10px 14px", borderRadius:12, border:`2px solid ${slot===s?"#38BDF8":dark?"rgba(59,130,246,0.15)":"rgba(147,197,253,0.3)"}`, background:slot===s?(dark?"rgba(56,189,248,0.12)":"rgba(219,234,254,0.6)"):"transparent", color:slot===s?"#38BDF8":m, fontWeight:600, fontSize:13, cursor:"pointer", textAlign:"left", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
-                    🗓 {s}
-                  </button>
+            {step === 2 && (
+              <>
+                <div className="mn-label">Confirm Booking</div>
+                {[
+                  ["Mentor",  mentor.name],
+                  ["Subject", subject || "General"],
+                  ["Slot",    slot],
+                  ["Rate",    `Rs ${mentor.rate}`],
+                ].map(([k,v]) => (
+                  <div key={k} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+                    <span style={{ fontSize:12,color:"rgba(232,230,223,.35)",fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:".06em",textTransform:"uppercase" }}>{k}</span>
+                    <span style={{ fontSize:13,fontWeight:700,color:"#f0ede6" }}>{v}</span>
+                  </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Note */}
-            <div style={{ marginBottom:24 }}>
-              <p style={{ fontSize:11, fontWeight:700, color:m, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>What do you need help with? (optional)</p>
-              <textarea rows={3} value={note} onChange={e=>setNote(e.target.value)} placeholder={`e.g. I'm struggling with ${subject || "the topic"}…`} style={{ ...inputStyle, resize:"none" }} />
-            </div>
-
-            <button className="btn-primary" style={{ width:"100%" }} disabled={!slot} onClick={() => setStep(2)}>
-              Continue → ₹{mentor.rate}
-            </button>
-            <button className="btn-ghost" style={{ width:"100%", marginTop:8, justifyContent:"center" }} onClick={onClose}>Cancel</button>
-          </div>
-        )}
-
-        {/* Step 2 — Payment summary */}
-        {step === 2 && (
-          <div style={{ padding:28 }}>
-            <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, color:t, marginBottom:4 }}>Confirm Booking</h2>
-            <p style={{ fontSize:14, color:m, marginBottom:24 }}>Review your session details before paying</p>
-
-            {/* Summary card */}
-            <div style={{ padding:20, borderRadius:18, background:dark?"rgba(15,30,55,0.8)":"rgba(241,245,249,0.8)", border:`1px solid ${dark?"rgba(59,130,246,0.15)":"rgba(147,197,253,0.35)"}`, marginBottom:20 }}>
-              {[
-                ["Mentor",   mentor.name],
-                ["Subject",  subject || "General"],
-                ["Need",     need?.label || "—"],
-                ["Slot",     slot],
-                ["Duration", "60 minutes"],
-                ["Language", mentor.languages[0]],
-              ].map(([k,v]) => (
-                <div key={k} style={{ display:"flex", justifyContent:"space-between", paddingBottom:10, marginBottom:10, borderBottom:`1px solid ${dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)"}` }}>
-                  <span style={{ fontSize:13, color:m, fontWeight:600 }}>{k}</span>
-                  <span style={{ fontSize:13, color:t, fontWeight:700 }}>{v}</span>
+                <div style={{ display:"flex",gap:8,marginTop:20 }}>
+                  <button className="mn-btn-ghost" onClick={() => setStep(1)} style={{ flex:1 }}>← Back</button>
+                  <button className="mn-btn-primary" style={{ flex:2 }} onClick={handlePay} disabled={paying}>
+                    {paying ? "Processing…" : `Pay Rs ${mentor.rate} →`}
+                  </button>
                 </div>
-              ))}
-              <div style={{ display:"flex", justifyContent:"space-between", paddingTop:4 }}>
-                <span style={{ fontSize:15, fontWeight:800, color:t }}>Total</span>
-                <span style={{ fontSize:18, fontWeight:900, color:"#38BDF8" }}>₹{mentor.rate}</span>
-              </div>
-            </div>
-
-            {/* Payment methods */}
-            <p style={{ fontSize:11, fontWeight:700, color:m, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Pay via</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:24 }}>
-              {[["📱 UPI", "#22C55E"], ["💳 Card", "#3B82F6"], ["🏦 Net Banking", "#8B5CF6"]].map(([label, color]) => (
-                <div key={label} style={{ padding:"10px 8px", borderRadius:12, border:`1px solid ${color}40`, background:`${color}10`, textAlign:"center", fontSize:12, fontWeight:700, color, cursor:"pointer" }}>{label}</div>
-              ))}
-            </div>
-
-            <button className="btn-primary" style={{ width:"100%" }} onClick={handlePay} disabled={paying}>
-              {paying ? "Processing…" : `Pay ₹${mentor.rate} & Confirm`}
-            </button>
-            <button className="btn-ghost" style={{ width:"100%", marginTop:8, justifyContent:"center" }} onClick={() => setStep(1)}>← Back</button>
+              </>
+            )}
           </div>
-        )}
-
-        {/* Step 3 — Booked! */}
-        {step === 3 && (
-          <div style={{ padding:36, textAlign:"center", position:"relative", overflow:"hidden" }}>
-            {/* Confetti */}
-            {["#38BDF8","#F59E0B","#22C55E","#818CF8","#F472B6"].map((c,i) => (
-              <div key={i} className="confetti-piece" style={{ background:c, left:`${15+i*17}%`, top:"20%", animationDelay:`${i*0.1}s`, "--dx":`${(i-2)*30}px`, "--dy":"-60px" }} />
-            ))}
-            <div style={{ fontSize:56, marginBottom:16 }}>🎉</div>
-            <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, color:t, marginBottom:8 }}>Session Booked!</h2>
-            <p style={{ fontSize:15, color:m, lineHeight:1.6, marginBottom:24 }}>
-              Your session with <strong style={{ color:t }}>{mentor.name}</strong> on <strong style={{ color:"#38BDF8" }}>{slot}</strong> is confirmed. You'll receive a WhatsApp reminder 30 minutes before.
-            </p>
-            <div style={{ padding:16, borderRadius:16, background:dark?"rgba(34,197,94,0.1)":"rgba(220,252,231,0.7)", border:"1px solid rgba(34,197,94,0.3)", marginBottom:24 }}>
-              <p style={{ fontSize:13, color:"#4ADE80", fontWeight:700 }}>✓ ₹{mentor.rate} paid · Booking ID: PTH-{mentor.id}{Date.now().toString().slice(-4)}</p>
-              <p style={{ fontSize:12, color:m, marginTop:4 }}>Refundable if cancelled 2hrs before session</p>
+        ) : (
+          <div style={{ padding:36,textAlign:"center" }}>
+            <div className="mn-confirm-ring">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
             </div>
-            <button className="btn-primary" style={{ width:"100%" }} onClick={() => { onConfirm(mentor); onClose(); }}>
-              🏠 Back to Dashboard
-            </button>
+            <h3 style={{ fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:"#f0ede6",marginBottom:8 }}>Session Booked</h3>
+            <p style={{ fontSize:13,color:"rgba(232,230,223,.4)",lineHeight:1.75,fontWeight:500,marginBottom:8 }}>
+              Your session with <span style={{ color:"#f0ede6",fontWeight:700 }}>{mentor.name}</span> is confirmed for{" "}
+              <span style={{ color:GREEN,fontWeight:700 }}>{slot}</span>.
+            </p>
+            <p style={{ fontSize:12,color:"rgba(232,230,223,.3)",marginBottom:24,fontFamily:"'JetBrains Mono',monospace" }}>
+              You'll receive a link 15 min before.
+            </p>
+            <button className="mn-btn-primary" style={{ minWidth:160 }} onClick={() => onConfirm(mentor)}>Done</button>
           </div>
         )}
       </div>
@@ -521,95 +396,74 @@ function BookModal({ mentor, subject, need, onClose, onConfirm, dark }) {
   );
 }
 
-/* ─────────────────────────────
-   MAIN COMPONENT
-───────────────────────────── */
-export default function MentorMarketPlace() {
+export default function MentorMarketplace() {
+  const { user } = useApp();
   const navigate = useNavigate();
-  const { dark, toggleDark, user } = useApp();
 
-  const [step,      setStep]    = useState("filter"); // filter | list
-  const [subject,   setSubject] = useState(null);
-  const [need,      setNeed]    = useState(null);
-  const [budget,    setBudget]  = useState("any");
-  const [language,  setLang]    = useState(null);
+  const [step,      setStep]      = useState("filter");
+  const [subject,   setSubject]   = useState(null);
+  const [need,      setNeed]      = useState(null);
+  const [budget,    setBudget]    = useState("any");
+  const [language,  setLang]      = useState(null);
   const [bookModal, setBookModal] = useState(null);
-  const [bookedSessions, setBooked] = useState([]);
+  const [booked,    setBooked]    = useState([]);
 
-  const theme = dark ? "dark" : "light";
-  const t  = dark ? "#E2EEFF"  : "#0F172A";
-  const m  = dark ? "#64748B"  : "#94A3B8";
-  const cardBg = { background:dark?"rgba(13,27,46,0.85)":"rgba(255,255,255,0.88)", border:`1px solid ${dark?"rgba(59,130,246,0.15)":"rgba(147,197,253,0.4)"}`, backdropFilter:"blur(20px)", borderRadius:22 };
-
-  /* Filter mentors */
-  const matched = MENTORS.filter(mn => {
-    const subOk  = !subject || mn.subjects.includes(subject);
-    const budMax = BUDGETS.find(b => b.id === budget)?.max || 999;
-    const budOk  = mn.rate <= budMax;
-    const langOk = !language || mn.languages.includes(language);
-    return subOk && budOk && langOk;
-  }).sort((a, b) => b.rating - a.rating);
-
-  const ALL_LANGS = [...new Set(MENTORS.flatMap(m => m.languages))].sort();
+  const budgetMax = BUDGETS.find(b => b.id===budget)?.max || 999;
+  const matched = MENTORS.filter(m => {
+    if (subject && !m.subjects.includes(subject)) return false;
+    if (m.rate > budgetMax) return false;
+    if (language && !m.languages.includes(language)) return false;
+    return true;
+  });
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div className={`men-app ${theme}`}>
-
-        {/* Mesh */}
-        <div className="mesh-fixed">
-          <div style={{ position:"absolute", inset:0, background:dark?"radial-gradient(ellipse at 30% 30%,#0d2744 0%,#070E1C 65%)":"radial-gradient(ellipse at 30% 30%,#dbeafe 0%,#EBF4FF 65%)" }}/>
-          <div className="orb" style={{ width:480,height:480,top:"-12%",right:"-8%", background:dark?"radial-gradient(circle,rgba(56,189,248,0.07) 0%,transparent 70%)":"radial-gradient(circle,rgba(56,189,248,0.1) 0%,transparent 70%)" }}/>
-          <div className="orb" style={{ width:360,height:360,bottom:"5%",left:"-6%",animationDelay:"6s", background:dark?"radial-gradient(circle,rgba(129,140,248,0.06) 0%,transparent 70%)":"radial-gradient(circle,rgba(129,140,248,0.09) 0%,transparent 70%)" }}/>
-          <div style={{ position:"absolute",inset:0,backgroundImage:dark?"linear-gradient(rgba(56,189,248,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.025) 1px,transparent 1px)":"linear-gradient(rgba(56,189,248,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.04) 1px,transparent 1px)",backgroundSize:"60px 60px" }}/>
-        </div>
+      <style dangerouslySetInnerHTML={{ __html: CSS }}/>
+      <div className="mn-root">
+        <div className="mn-blob" style={{ width:520,height:520,background:"rgba(126,203,161,.05)",top:-140,right:-120 }}/>
+        <div className="mn-blob" style={{ width:380,height:380,background:"rgba(80,100,200,.03)",bottom:100,left:-80,filter:"blur(110px)",animationDelay:"5s" }}/>
 
         {/* Topbar */}
-        <div style={{ position:"sticky",top:0,zIndex:50,background:dark?"rgba(7,14,28,0.88)":"rgba(235,244,255,0.88)",backdropFilter:"blur(20px)",borderBottom:`1px solid ${dark?"rgba(56,189,248,0.1)":"rgba(147,197,253,0.4)"}`,padding:"14px 24px",display:"flex",alignItems:"center",gap:12 }}>
-          <button onClick={() => navigate("/student/dashboard")} style={{ padding:"7px 14px",borderRadius:10,border:`1px solid ${dark?"rgba(56,189,248,0.2)":"rgba(147,197,253,0.5)"}`,background:"transparent",color:m,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}>← Dashboard</button>
-          <div style={{ flex:1,fontFamily:"'Syne',sans-serif",fontSize:17,fontWeight:800,color:t }}>⭐ Find a Mentor</div>
-          {bookedSessions.length > 0 && (
-            <div style={{ padding:"5px 12px",borderRadius:20,background:"rgba(34,197,94,0.15)",border:"1px solid rgba(34,197,94,0.3)",fontSize:12,fontWeight:700,color:"#4ADE80" }}>
-              ✓ {bookedSessions.length} Booked
-            </div>
+        <div className="mn-topbar">
+          <button className="mn-btn-ghost" onClick={() => navigate("/student/dashboard")}>← Dashboard</button>
+          <span className="mn-topbar-title">
+            {step==="list" ? `${matched.length} Mentors` : "Find a Mentor"}
+          </span>
+          {step==="list" && (
+            <button className="mn-btn-ghost" onClick={() => setStep("filter")}>← Filters</button>
           )}
-          <button onClick={toggleDark} style={{ width:46,height:24,borderRadius:12,border:"none",cursor:"pointer",background:dark?"#0284c7":"#e2e8f0",padding:2,display:"flex",alignItems:"center",transition:"background 0.3s" }}>
-            <div style={{ width:20,height:20,borderRadius:"50%",background:"white",transform:dark?"translateX(22px)":"translateX(0)",transition:"transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11 }}>{dark?"🌙":"☀"}</div>
-          </button>
         </div>
 
-        <div style={{ position:"relative",zIndex:1,maxWidth:900,margin:"0 auto",padding:"32px 20px" }}>
+        <div className="mn-content">
 
-          {/* ── STEP 1: Filter ── */}
+          {/* ── FILTER STEP ── */}
           {step === "filter" && (
             <>
               {/* Hero */}
-              <div className="animate-fade-up" style={{ textAlign:"center",marginBottom:36 }}>
-                <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"5px 16px",borderRadius:20,background:dark?"rgba(56,189,248,0.1)":"rgba(219,234,254,0.8)",border:`1px solid ${dark?"rgba(56,189,248,0.25)":"rgba(147,197,253,0.5)"}`,marginBottom:16 }}>
-                  <span style={{ width:6,height:6,borderRadius:"50%",background:"#38BDF8",display:"inline-block" }}/>
-                  <span style={{ fontSize:11,fontWeight:700,letterSpacing:"0.1em",color:"#38BDF8",textTransform:"uppercase" }}>Peer Mentors · PathwayAI</span>
+              <div className="fu" style={{ marginBottom:36 }}>
+                <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"5px 14px",borderRadius:20,background:"rgba(126,203,161,.08)",border:"1px solid rgba(126,203,161,.2)",marginBottom:16 }}>
+                  <div style={{ width:5,height:5,borderRadius:"50%",background:GREEN }}/>
+                  <span style={{ fontSize:10,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:GREEN,fontFamily:"'JetBrains Mono',monospace" }}>Peer Mentors · PathwayAI</span>
                 </div>
-                <h1 style={{ fontFamily:"'Syne',sans-serif",fontSize:"clamp(26px,5vw,42px)",fontWeight:800,lineHeight:1.1,marginBottom:10 }}>
-                  <span style={{ color:t }}>Learn from </span>
-                  <span className="text-shimmer">Students Like You</span>
+                <h1 style={{ fontFamily:"'Syne',sans-serif",fontSize:"clamp(26px,5vw,42px)",fontWeight:800,letterSpacing:"-.03em",color:"#f0ede6",lineHeight:1.1,marginBottom:10 }}>
+                  Learn from{" "}
+                  <span style={{ fontFamily:"'Instrument Serif',serif",fontStyle:"italic",fontWeight:400,color:GREEN }}>students like you.</span>
                 </h1>
-                <p style={{ fontSize:15,color:m,maxWidth:440,margin:"0 auto" }}>
+                <p style={{ fontSize:14,color:"rgba(232,230,223,.35)",lineHeight:1.75,fontWeight:500,maxWidth:440 }}>
                   Peer mentors who've already cracked the same syllabus. Affordable, relatable, effective.
                 </p>
               </div>
 
               {/* Filter card */}
-              <div className="animate-fade-up d1" style={{ ...cardBg,padding:28,marginBottom:24 }}>
+              <div className="mn-card fu d1" style={{ padding:28,marginBottom:20 }}>
 
                 {/* Subject */}
-                <div style={{ marginBottom:24 }}>
-                  <p style={{ fontSize:11,fontWeight:700,color:m,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12 }}>📚 What subject do you need help with?</p>
+                <div style={{ marginBottom:22 }}>
+                  <div className="mn-label">Subject</div>
                   <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
                     {SUBJECTS.map(s => (
-                      <button key={s} className="filter-chip"
-                        onClick={() => setSubject(subject===s?null:s)}
-                        style={{ borderColor:subject===s?"#38BDF8":"transparent",background:subject===s?(dark?"rgba(56,189,248,0.15)":"rgba(219,234,254,0.7)"):(dark?"rgba(15,30,55,0.7)":"rgba(241,245,249,0.8)"),color:subject===s?"#38BDF8":m }}>
+                      <button key={s} className={`mn-chip ${subject===s?"active":""}`}
+                        onClick={() => setSubject(subject===s?null:s)}>
                         {s}
                       </button>
                     ))}
@@ -617,14 +471,13 @@ export default function MentorMarketPlace() {
                 </div>
 
                 {/* Need */}
-                <div style={{ marginBottom:24 }}>
-                  <p style={{ fontSize:11,fontWeight:700,color:m,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12 }}>🎯 What kind of help do you need?</p>
-                  <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(175px,1fr))",gap:8 }}>
+                <div style={{ marginBottom:22 }}>
+                  <div className="mn-label">Type of Help</div>
+                  <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(175px,1fr))",gap:7 }}>
                     {NEEDS.map(n => (
-                      <button key={n.id} className="need-chip"
-                        onClick={() => setNeed(need?.id===n.id?null:n)}
-                        style={{ borderColor:need?.id===n.id?"#38BDF8":"transparent",background:need?.id===n.id?(dark?"rgba(56,189,248,0.12)":"rgba(219,234,254,0.6)"):(dark?"rgba(15,30,55,0.7)":"rgba(241,245,249,0.8)"),color:need?.id===n.id?"#38BDF8":m }}>
-                        <span>{n.icon}</span>{n.label}
+                      <button key={n.id} className={`mn-need-chip ${need?.id===n.id?"active":""}`}
+                        onClick={() => setNeed(need?.id===n.id?null:n)}>
+                        {n.label}
                       </button>
                     ))}
                   </div>
@@ -633,24 +486,22 @@ export default function MentorMarketPlace() {
                 {/* Budget + Language */}
                 <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:20 }}>
                   <div>
-                    <p style={{ fontSize:11,fontWeight:700,color:m,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10 }}>💰 Budget per session</p>
+                    <div className="mn-label">Budget / Session (Rs)</div>
                     <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>
                       {BUDGETS.map(b => (
-                        <button key={b.id} className="filter-chip"
-                          onClick={() => setBudget(b.id)}
-                          style={{ fontSize:12,borderColor:budget===b.id?"#38BDF8":"transparent",background:budget===b.id?(dark?"rgba(56,189,248,0.15)":"rgba(219,234,254,0.7)"):(dark?"rgba(15,30,55,0.7)":"rgba(241,245,249,0.8)"),color:budget===b.id?"#38BDF8":m }}>
+                        <button key={b.id} className={`mn-chip ${budget===b.id?"active":""}`}
+                          onClick={() => setBudget(b.id)}>
                           {b.label}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p style={{ fontSize:11,fontWeight:700,color:m,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10 }}>🗣 Language preference</p>
+                    <div className="mn-label">Language</div>
                     <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>
                       {ALL_LANGS.map(l => (
-                        <button key={l} className="filter-chip"
-                          onClick={() => setLang(language===l?null:l)}
-                          style={{ fontSize:12,borderColor:language===l?"#38BDF8":"transparent",background:language===l?(dark?"rgba(56,189,248,0.15)":"rgba(219,234,254,0.7)"):(dark?"rgba(15,30,55,0.7)":"rgba(241,245,249,0.8)"),color:language===l?"#38BDF8":m }}>
+                        <button key={l} className={`mn-chip ${language===l?"active":""}`}
+                          onClick={() => setLang(language===l?null:l)}>
                           {l}
                         </button>
                       ))}
@@ -659,96 +510,94 @@ export default function MentorMarketPlace() {
                 </div>
               </div>
 
-              {/* Find button */}
-              <div className="animate-fade-up d2" style={{ textAlign:"center",marginBottom:32 }}>
-                <button className="btn-primary" style={{ fontSize:16,padding:"15px 44px" }} onClick={() => setStep("list")}>
-                  Find Mentors ({matched.length} available) →
-                </button>
+              {/* Stats bar */}
+              <div className="mn-card fu d2" style={{ padding:20,display:"flex",gap:0,flexWrap:"wrap",justifyContent:"center",marginBottom:28 }}>
+                {[
+                  { label:"Active Mentors", val:`${MENTORS.length}+` },
+                  { label:"Avg Rating",     val:"4.8" },
+                  { label:"Sessions Done",  val:"285+" },
+                  { label:"Starting From",  val:"Rs 45" },
+                  { label:"Languages",      val:"9 Indian" },
+                ].map((s,i) => (
+                  <React.Fragment key={s.label}>
+                    {i>0 && <div style={{ width:1,background:"rgba(255,255,255,.07)",alignSelf:"stretch",margin:"0 20px" }}/>}
+                    <div style={{ textAlign:"center",padding:"4px 0" }}>
+                      <div style={{ fontFamily:"'Instrument Serif',serif",fontStyle:"italic",fontSize:26,fontWeight:500,color:GREEN }}>{s.val}</div>
+                      <div style={{ fontSize:10,fontWeight:700,color:"rgba(232,230,223,.3)",fontFamily:"'JetBrains Mono',monospace",letterSpacing:".06em",textTransform:"uppercase" }}>{s.label}</div>
+                    </div>
+                  </React.Fragment>
+                ))}
               </div>
 
-              {/* Stats bar */}
-              <div className="animate-fade-up d3" style={{ ...cardBg,padding:20,display:"flex",gap:24,flexWrap:"wrap",justifyContent:"center" }}>
-                {[
-                  { icon:"👨‍🏫", label:"Active Mentors",   val:`${MENTORS.length}+` },
-                  { icon:"⭐",   label:"Avg Rating",        val:"4.8" },
-                  { icon:"💬",   label:"Sessions Done",     val:"285+" },
-                  { icon:"💰",   label:"Starting from",     val:"₹45/hr" },
-                  { icon:"🌐",   label:"Languages",         val:"9 Indian" },
-                ].map(s => (
-                  <div key={s.label} style={{ textAlign:"center" }}>
-                    <div style={{ fontSize:20,marginBottom:4 }}>{s.icon}</div>
-                    <div style={{ fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:900,color:"#38BDF8" }}>{s.val}</div>
-                    <div style={{ fontSize:11,fontWeight:600,color:m }}>{s.label}</div>
-                  </div>
-                ))}
+              <div className="fu d3" style={{ textAlign:"center" }}>
+                <button className="mn-btn-primary" style={{ fontSize:15,padding:"15px 44px" }}
+                  onClick={() => setStep("list")}>
+                  Find Mentors ({matched.length} available) →
+                </button>
               </div>
             </>
           )}
 
-          {/* ── STEP 2: Mentor list ── */}
+          {/* ── LIST STEP ── */}
           {step === "list" && (
             <>
-              {/* Header */}
-              <div className="animate-fade-up" style={{ display:"flex",alignItems:"center",gap:12,marginBottom:24,flexWrap:"wrap" }}>
-                <button className="btn-ghost" onClick={() => setStep("filter")}>← Filters</button>
-                <h2 style={{ fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:t,flex:1 }}>
-                  {matched.length} Mentors Found
-                  {subject && <span style={{ fontSize:14,fontWeight:400,color:m }}> · {subject}</span>}
-                </h2>
-                {/* Active filters */}
-                <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
-                  {subject  && <span className="pill">{subject}</span>}
-                  {need     && <span className="pill">{need.icon} {need.label}</span>}
-                  {budget !== "any" && <span className="pill">{BUDGETS.find(b=>b.id===budget)?.label}</span>}
-                  {language && <span className="pill">🗣 {language}</span>}
+              {/* Active filters */}
+              {(subject || need || budget!=="any" || language) && (
+                <div className="fu" style={{ display:"flex",gap:6,flexWrap:"wrap",marginBottom:20 }}>
+                  {subject  && <span className="mn-chip active" style={{ cursor:"default" }}>{subject}</span>}
+                  {need     && <span className="mn-chip active" style={{ cursor:"default" }}>{need.label}</span>}
+                  {budget!=="any" && <span className="mn-chip active" style={{ cursor:"default" }}>{BUDGETS.find(b=>b.id===budget)?.label}</span>}
+                  {language && <span className="mn-chip active" style={{ cursor:"default" }}>{language}</span>}
+                  <button className="mn-btn-ghost" style={{ padding:"4px 10px",fontSize:11 }}
+                    onClick={() => { setSubject(null); setBudget("any"); setLang(null); setNeed(null); }}>
+                    Clear all
+                  </button>
                 </div>
-              </div>
+              )}
 
               {matched.length === 0 ? (
-                <div style={{ ...cardBg,padding:40,textAlign:"center" }}>
-                  <div style={{ fontSize:40,marginBottom:12 }}>🔍</div>
-                  <h3 style={{ fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,color:t,marginBottom:8 }}>No mentors match your filters</h3>
-                  <p style={{ color:m,fontSize:14,marginBottom:20 }}>Try removing the budget or language filter</p>
-                  <button className="btn-primary" onClick={() => { setBudget("any"); setLang(null); }}>Reset Filters</button>
+                <div className="mn-card" style={{ padding:40,textAlign:"center" }}>
+                  <div style={{ fontSize:9,fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(232,230,223,.2)",fontFamily:"'JetBrains Mono',monospace",marginBottom:12 }}>No results</div>
+                  <h3 style={{ fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,color:"#f0ede6",marginBottom:8 }}>No mentors match your filters</h3>
+                  <p style={{ color:"rgba(232,230,223,.35)",fontSize:14,marginBottom:20,fontWeight:500 }}>Try removing the budget or language filter</p>
+                  <button className="mn-btn-primary" onClick={() => { setBudget("any"); setLang(null); }}>Reset Filters</button>
                 </div>
               ) : (
-                <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(360px,1fr))",gap:20 }}>
-                  {matched.map((mn,i) => (
-                    <MentorCard key={mn.id} mentor={mn} onBook={setBookModal} dark={dark} index={i} />
+                <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:20 }}>
+                  {matched.map((m,i) => (
+                    <MentorCard key={m.id} mentor={m} onBook={setBookModal} index={i}/>
                   ))}
                 </div>
               )}
 
-              {/* Bottom CTA — become a mentor */}
-              <div className="animate-fade-up" style={{ marginTop:32,borderRadius:22,padding:28,background:"linear-gradient(135deg,#0D2744,#163B5C)",textAlign:"center" }}>
-                <div style={{ fontSize:28,marginBottom:10 }}>⭐</div>
-                <h3 style={{ fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:"white",marginBottom:8 }}>Your Score is High Enough to Mentor!</h3>
-                <p style={{ fontSize:14,color:"rgba(255,255,255,0.65)",marginBottom:20,maxWidth:400,margin:"0 auto 20px" }}>
-                  If you have a Silver or Gold badge in any subject, you can start earning ₹50–₹150/session as a peer mentor.
+              {/* Become a mentor CTA */}
+              <div className="fu" style={{
+                marginTop:32,borderRadius:20,padding:28,
+                background:"rgba(126,203,161,.04)",
+                border:"1px solid rgba(126,203,161,.12)",
+                textAlign:"center",
+              }}>
+                <div style={{ fontSize:9,fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(126,203,161,.6)",fontFamily:"'JetBrains Mono',monospace",marginBottom:10 }}>Earn as Mentor</div>
+                <h3 style={{ fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:"#f0ede6",marginBottom:8 }}>Your Score is High Enough to Mentor</h3>
+                <p style={{ fontSize:14,color:"rgba(232,230,223,.35)",marginBottom:20,maxWidth:400,margin:"0 auto 20px",lineHeight:1.75,fontWeight:500 }}>
+                  Silver or Gold badge in any subject qualifies you to earn Rs 50–150 per session as a peer mentor.
                 </p>
-                <button className="btn-primary" style={{ background:"linear-gradient(135deg,#F59E0B,#F97316)" }}>
-                  Apply to Become a Mentor →
-                </button>
+                <button className="mn-btn-primary">Apply to Become a Mentor →</button>
               </div>
             </>
           )}
         </div>
-      </div>
 
-      {/* Book modal */}
-      {bookModal && (
-        <BookModal
-          mentor={bookModal}
-          subject={subject}
-          need={need}
-          dark={dark}
-          onClose={() => setBookModal(null)}
-          onConfirm={(mn) => {
-            setBooked(prev => [...prev, mn]);
-            setBookModal(null);
-          }}
-        />
-      )}
+        {bookModal && (
+          <BookModal
+            mentor={bookModal}
+            subject={subject}
+            need={need}
+            onClose={() => setBookModal(null)}
+            onConfirm={(m) => { setBooked(prev => [...prev,m]); setBookModal(null); }}
+          />
+        )}
+      </div>
     </>
   );
 }
