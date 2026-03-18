@@ -248,10 +248,10 @@ const ACCENT = {
 };
 
 const STATS = [
-  { label: "Day Streak",     value: "12",     sub: "+2 this week",   accent: ACCENT.green, sym: "12" },
-  { label: "Sessions / wk",  value: "6",      sub: "On track",       accent: ACCENT.blue,  sym: "6"  },
-  { label: "Earned",          value: "2,400",  sub: "+400 today",    accent: ACCENT.rose,  sym: "Rs" },
-  { label: "Credentials",    value: "3",      sub: "1 pending",      accent: ACCENT.amber, sym: "3"  },
+  { label: "Day Streak",     value: "12",     sub: "+2 this week",   accent: ACCENT.green, sym: "12", path: "/student/streaks" },
+  { label: "Sessions / wk",  value: "6",      sub: "On track",       accent: ACCENT.blue,  sym: "6",  path: null               },
+  { label: "Earned",          value: "2,400",  sub: "+400 today",    accent: ACCENT.rose,  sym: "Rs", path: null               },
+  { label: "Credentials",    value: "3",      sub: "1 pending",      accent: ACCENT.amber, sym: "3",  path: "/student/credentials" },
 ];
 
 const STRUGGLE = [
@@ -275,6 +275,9 @@ const ACTIONS = [
   { label: "Credentials",      path: "/student/credentials", accent: ACCENT.amber, code: "CR",  badge: "Ready" },
   { label: "Browse Employers", path: "/student/employers",   accent: ACCENT.green, code: "EM",  badge: null    },
   { label: "Study Plan",       path: "/student/study-plan",  accent: ACCENT.blue,  code: "SP",  badge: null    },
+  { label: "Mock Interview",   path: "/student/mock-interview",   accent: ACCENT.blue,  code: "MI",  badge: "New"   },
+  { label: "AI Doubt Solver",  path: "/student/ai-doubt",    accent: ACCENT.amber, code: "DS",  badge: "New"   },
+  { label: "Streaks & XP",     path: "/student/streaks",     accent: ACCENT.green, code: "XP",  badge: null    },
 ];
 
 const WEEKLY = [
@@ -505,7 +508,11 @@ export default function Dashboard() {
           {/* ════ STAT CARDS ════ */}
           <div className="db-fade-up d1 stats-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:12 }}>
             {STATS.map((s) => (
-              <div key={s.label} className="db-stat" style={{ padding:"20px 22px" }}>
+              <div key={s.label} className="db-stat" style={{ padding:"20px 22px", cursor: s.path ? "pointer" : "default" }}
+                onClick={() => s.path && navigate(s.path)}
+                onMouseEnter={e => { if (s.path) e.currentTarget.style.borderColor = s.accent.border; }}
+                onMouseLeave={e => { if (s.path) e.currentTarget.style.borderColor = "rgba(255,255,255,.07)"; }}
+              >
                 {/* top accent stripe */}
                 <div style={{ position:"absolute", top:0, left:18, right:18, height:2, borderRadius:"0 0 4px 4px", background:s.accent.base, opacity:.55 }}/>
 
@@ -513,7 +520,10 @@ export default function Dashboard() {
                   <div style={{ width:34, height:34, borderRadius:10, background:s.accent.dim, border:`1px solid ${s.accent.border}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
                     <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:11, fontWeight:500, color:s.accent.base }}>{s.sym}</span>
                   </div>
-                  <span style={{ fontSize:11, color:"rgba(232,230,223,.3)", fontWeight:600 }}>{s.sub}</span>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{ fontSize:11, color:"rgba(232,230,223,.3)", fontWeight:600 }}>{s.sub}</span>
+                    {s.path && <span style={{ fontSize:10, color:s.accent.base, opacity:.6 }}>›</span>}
+                  </div>
                 </div>
 
                 <div style={{ fontFamily:"'Instrument Serif',serif", fontSize:40, fontWeight:500, fontStyle:"italic", color:"#f0ede6", lineHeight:1, marginBottom:4 }}>
@@ -866,8 +876,59 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* NEW FEATURES SPOTLIGHT */}
+              <div className="db-fade-up d5 db-card" style={{ background:"rgba(126,181,203,.025)", borderColor:"rgba(126,181,203,.12)" }}>
+                <div className="db-card-inner">
+                  <SLabel accent={ACCENT.blue.base}>New on PathwayAI</SLabel>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    {[
+                      {
+                        label: "AI Mock Interview", desc: "Camera + mic · In-browser ML", 
+                        path: "/student/mock-interview",
+                        code:  "MI",
+                        accent: ACCENT.blue,
+                      },
+                      {
+                        label: "AI Doubt Solver",
+                        desc:  "Snap any question · Step-by-step",
+                        path:  "/student/ai-doubt",
+                        code:  "DS",
+                        accent: ACCENT.amber,
+                      },
+                      {
+                        label: "Streaks & XP",
+                        desc:  "Badges · Leaderboard · Rewards",
+                        path:  "/student/streaks",
+                        code:  "XP",
+                        accent: ACCENT.green,
+                      },
+                    ].map((f) => (
+                      <button key={f.path} className="db-action-row" onClick={() => navigate(f.path)}>
+                        <div style={{
+                          width:34, height:34, borderRadius:10, flexShrink:0,
+                          background: f.accent.dim, border:`1px solid ${f.accent.border}`,
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                        }}>
+                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:10, fontWeight:500, color:f.accent.base }}>{f.code}</span>
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:13, fontWeight:700, color:"#e8e6df" }}>{f.label}</div>
+                          <div style={{ fontSize:11, color:"rgba(232,230,223,.3)", fontWeight:500, marginTop:1 }}>{f.desc}</div>
+                        </div>
+                        <span style={{
+                          fontSize:9, fontWeight:800, padding:"2px 8px", borderRadius:6,
+                          fontFamily:"'JetBrains Mono',monospace",
+                          background: f.accent.dim, border:`1px solid ${f.accent.border}`,
+                          color:f.accent.base, letterSpacing:".08em", textTransform:"uppercase",
+                        }}>New</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* CREDENTIALS */}
-              <div className="db-fade-up d5 db-card">
+              <div className="db-fade-up d6 db-card">
                 <div className="db-card-inner">
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
                     <SLabel accent={ACCENT.amber.base}>Credentials</SLabel>
