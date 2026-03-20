@@ -73,5 +73,87 @@ Optional cloud synchronization will allow institutions and policymakers to acces
 The architecture is adaptable to other developing regions facing similar challenges in education access, making Pathway AI a globally scalable solution.
 
 ---
+## Pathway AI
+├── index.html
+├── main.jsx
+├── App.jsx
+├── App.css
+├── index.css
+├── react.svg
+├── vite.svg
+│
+├── Pages & Components
+│   ├── LandingPage.jsx
+│   ├── AuthPage.jsx
+│   ├── Dashboard.jsx
+│   ├── Sidebar.jsx
+│   ├── ConnBar.jsx
+│   ├── SyncIndicator.jsx
+│   ├── AnimatedLessons.jsx
+│   ├── Quiz.jsx
+│   ├── StudyPlan.jsx
+│   ├── StreaksXP.jsx
+│   ├── Forum.jsx
+│   ├── ResumeBuilder.jsx
+│   ├── Credentials.jsx
+│   ├── RolePortal.jsx
+│   ├── Employers.jsx
+│   ├── MentorMarketplace.jsx
+│   ├── MentorDashboard.jsx
+│   ├── AITutor.jsx
+│   ├── AIDoubtSolver.jsx
+│   ├── AIMockInterview.jsx
+│   └── SignLanguageDetector.jsx
+│
+├── Context & State
+│   ├── AppContext.jsx
+│   └── ConnContext.jsx
+│
+├── Hooks
+│   ├── useAuth.js
+│   ├── useAITutor.js
+│   ├── useAssessments.js
+│   ├── useChat.js
+│   ├── useConnectivity.js
+│   ├── useCredentials.js
+│   ├── useEarnings.js
+│   ├── useForum.js
+│   ├── useQuiz.js
+│   ├── useResume.js
+│   ├── useSessions.js
+│   └── useStudyPlan.js
+│
+├── Data
+│   ├── allData.js
+│   ├── aiResponses.js
+│   ├── credentialData.js
+│   ├── employerData.js
+│   ├── mentorData.js
+│   ├── planData.js
+│   └── quizData.js
+│
+├── Backend (Python)
+│   ├── main.py
+│   ├── ai_tutor.py
+│   ├── resume_ai.py
+│   ├── main.cpython-38.pyc
+│   └── resume_ai.cpython-38.pyc
+│
+├── Backend (Node)
+│   └── server.js
+│
+├── Config
+│   ├── supabase.js
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── eslint.config.js
+│   ├── package.json
+│   └── package-lock.json
+│
+└── Misc
+    ├── .env
+    ├── env.txt
+    └── .gitignore
 
 Pathway AI is not just built to function—it is built to scale, sustain, and transform education into a system where access, personalization, and opportunity are universally available.
